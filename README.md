@@ -24,6 +24,7 @@ curl -X POST -F "data=@CSVs/dados.zip" http://localhost:5678/webhook/popula-db
 ------------
 ### 4. AnaliseConsumo.json - Análise de consumo com LLM
 
+#### Endpoint `GET http://localhost:5678/webhook/analise-consumo`
 Analisa as leituras dos últimos 3 meses de contratos ativos, identifica outliers e gera um relatório através de um LLM. Para a detecção dos outliers foi utilizado o intervalo interquartil (IQR) com fator 1.5, pois dados de consumo de energia não costumam seguir distribuição normal, podendo ter distribuição assimétrica com outliers naturais (familias grandes, empresas pequenas, etc).
 
 Para gerar o resultado com a análise do LLM é necessário passar o query param `llm=true`. Sem esse parâmetro o webhook trará somente os dados da análise (nomes dos clientes, média de consumo e status de normal ou outlier).
