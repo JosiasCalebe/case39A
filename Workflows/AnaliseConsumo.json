@@ -1,0 +1,266 @@
+{
+  "name": "Análise de consumo com LLM",
+  "nodes": [
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        1696,
+        -128
+      ],
+      "id": "72fc7ec4-cfb4-4d72-8cf4-d9b0c50f396d",
+      "name": "Responder com JSON"
+    },
+    {
+      "parameters": {
+        "path": "analise-consumo",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        -128
+      ],
+      "id": "8c25f952-3437-4c99-bfa5-79e6b7f81d4f",
+      "name": "Webhook",
+      "webhookId": "analise-consumo-webhook"
+    },
+    {
+      "parameters": {
+        "jsCode": "const dados = $input.all();\n\n// Extrai valores de consumo\nconst consumos = dados.map(item => Number(item.json.media_consumo_kwh));\n\n// Ordena para o cálculo dos quartis\nconsumos.sort((a, b) => a - b);\n\n// Calcula quartis\nconst q1Index = Math.floor(consumos.length * 0.25);\nconst q3Index = Math.floor(consumos.length * 0.75);\nconst q1 = Number(consumos[q1Index]);\nconst q3 = Number(consumos[q3Index]);\nconst iqr = q3 - q1;\n\nconst limiteInferior = q1 - (1.5 * iqr);\nconst limiteSuperior = q3 + (1.5 * iqr);\n\n// Calcula estatísticas\nconst mediaGeral = Math.round((consumos.reduce((sum, val) => sum + val, 0) / consumos.length) * 100) / 100;\nconst mediana = consumos[Math.floor(consumos.length / 2)];\nconst maxConsumo = Math.max(...consumos);\nconst minConsumo = Math.min(...consumos);\n\nconst resultados = [];\nlet totalClientes = 0;\nlet totalOutliers = 0;\nlet outliersAltoConsumo = 0;\nlet outliersBaixoConsumo = 0;\n\n// Processa cada cliente\nfor (const item of dados) {\n  const consumo = Number(item.json.media_consumo_kwh);\n  let status = 'normal';\n  let tipoOutlier = null;\n  \n  // Verificar se é outlier\n  if (consumo < limiteInferior) {\n    status = 'outlier';\n    tipoOutlier = 'consumo_baixo';\n    totalOutliers++;\n    outliersBaixoConsumo++;\n  } else if (consumo > limiteSuperior) {\n    status = 'outlier';\n    tipoOutlier = 'consumo_alto';\n    totalOutliers++;\n    outliersAltoConsumo++;\n  }\n  \n  resultados.push({\n    json: {\n      ...item.json,\n      status: status,\n      tipo_outlier: tipoOutlier,\n      percentual_acima_media: Math.round(((consumo - mediaGeral) / mediaGeral * 100) * 100) / 100\n    }\n  });\n  \n  totalClientes++;\n}\n\nconst resultado = {\n  json: {\n    dados: resultados,\n    estatisticas: {\n      total_clientes: totalClientes,\n      total_outliers: totalOutliers,\n      outliers_alto_consumo: outliersAltoConsumo,\n      outliers_baixo_consumo: outliersBaixoConsumo,\n      percentual_outliers: Math.round((totalOutliers / totalClientes * 100) * 100) / 100,\n      media_geral: mediaGeral,\n      mediana: mediana,\n      max_consumo: maxConsumo,\n      min_consumo: minConsumo,\n      q1: q1,\n      q3: q3,\n      iqr: Math.round(iqr * 100)/100,\n      limite_inferior: Math.round(limiteInferior * 100)/100,\n      limite_superior: Math.round(limiteSuperior * 100)/100,\n      metodo_utilizado: 'Intervalo Interquartil (IQR) com fator 1.5'\n    }\n  }\n};\n\nreturn resultado;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        448,
+        -128
+      ],
+      "id": "9799e4eb-0f25-43ee-9329-9d92e69d745c",
+      "name": "Identificar Outliers"
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "const item = $input.item.json;\n\nconst estatisticas = item.estatisticas;\n\nconst outliers = item.dados.filter(item => item.json.status === 'outlier');\n\n// Criar tabela formatada para outliers\nlet tabelaOutliers = '\\\nTabela de Outliers Detalhados:\\\n| Cliente | Consumo Médio | Tipo | Desvio da Média |\\\n|---|---|---|---|\\\n';\n\noutliers.forEach(o => {\n  tabelaOutliers += `| ${o.json.nome} | ${o.json.media_consumo_kwh} kWh | ${o.json.tipo_outlier} | ${o.json.percentual_acima_media}% |\\\n`;\n});\n\n// Criar prompt com todos os dados\nconst promptCompleto = `ANÁLISE DE CONSUMO CONTRATOS ATIVOS - ÚLTIMOS 3 MESES\n\nESTATÍSTICAS GERAIS:\n- Total de clientes com contratos ativos: ${estatisticas.total_clientes}\n- Período analisado: últimos 3 meses\n- Média: ${estatisticas.media_geral} kWh\n- Mediana: ${estatisticas.mediana} kWh\n- Maior consumo: ${estatisticas.max_consumo} kWh\n- Menor consumo: ${estatisticas.min_consumo} kWh\n\nIDENTIFICAÇÃO DE OUTLIERS (Método IQR):\n- Total de outliers: ${estatisticas.total_outliers} (${estatisticas.percentual_outliers}%)\n- Outliers de alto consumo: ${estatisticas.outliers_alto_consumo} clientes\n- Outliers de baixo consumo: ${estatisticas.outliers_baixo_consumo} clientes\n- Limite inferior (abaixo é outlier): ${estatisticas.limite_inferior} kWh\n- Limite superior (acima é outlier): ${estatisticas.limite_superior} kWh\n\n${tabelaOutliers}\n\n- Total de outliers detalhados: ${outliers.length}\n\nMETODOLOGIA:\n${estatisticas.metodo_utilizado}\n\nPOR FAVOR, ANALISE OS OUTLIERS LISTADOS NA TABELA ACIMA E FORNEÇA:\n1. RESUMO\n2. ANÁLISE\n3. SUGESTÕES\n\nBaseie sua análise nos dados completos fornecidos, especialmente na tabela de outliers.`;\n\nreturn {\n  json: {\n    prompt_completo: promptCompleto\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        896,
+        -192
+      ],
+      "id": "c159d631-334c-4cb4-aae4-88989a3cf16e",
+      "name": "Preparar Prompt"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "GPT-4O-MINI"
+        },
+        "responses": {
+          "values": [
+            {
+              "role": "system",
+              "content": "Você é um analista de energia para uma empresa de energia solar. Gere relatórios concisos, profissionais e baseados em dados. Inclua insights acionáveis."
+            },
+            {
+              "content": "={{$json.prompt_completo}}"
+            }
+          ]
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 2.1,
+      "position": [
+        1120,
+        -192
+      ],
+      "id": "25b77d5e-546e-4681-ab95-058c26f1c88d",
+      "name": "Análise LLM",
+      "credentials": {
+        "openAiApi": {
+          "id": "LeALt6z6lfup6DPT",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const dadosProcessados = $('Identificar Outliers').first().json.dados;\n\nlet respostaLlm = null;\n\ntry {\n  respostaLlm = $('Análise LLM').first().json.output[0].content[0].text;\n} catch (e) {\n  respostaLlm = null; \n}\n\nconst dadosFormatados = dadosProcessados.map(item => ({\n  nome: item.json.nome,\n  media_consumo_kwh: item.json.media_consumo_kwh, \n  status: item.json.status\n}));\n\n\nreturn [{\n  json: {\n  dados_clientes: dadosFormatados,\n  analise_llm: respostaLlm\n}\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1472,
+        -128
+      ],
+      "id": "d7491eda-0603-4d92-8889-5c0a3a90abab",
+      "name": "Formatar Resposta"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT \n  c.id,\n  c.nome,\n  ROUND(AVG(l.valor_kwh)::numeric, 2) as media_consumo_kwh,\n  COUNT(l.id) as total_leituras\n  FROM clientes c\n  INNER JOIN contratos co ON c.id = co.cliente_id\n  INNER JOIN leituras_energeticas l ON co.id = l.contrato_id\n  WHERE co.status_contrato = true\n  AND l.data_leitura >= CURRENT_DATE - INTERVAL '3 months'\n  AND l.data_leitura <= CURRENT_DATE\n  GROUP BY c.id, c.nome\n  HAVING COUNT(l.id) >= 1\n  ORDER BY media_consumo_kwh DESC;",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        224,
+        -128
+      ],
+      "id": "1f26f930-9aee-4248-9c26-6ea352ae8079",
+      "name": "Consultar Consumo 3 Meses",
+      "credentials": {
+        "postgres": {
+          "id": "Ekm7PWBtL92eLgh1",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "61b56571-95cb-4f3b-b270-e45d6289d17d",
+              "leftValue": "={{ $('Webhook').first().json.query.llm }}",
+              "rightValue": "true",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        672,
+        -128
+      ],
+      "id": "2e2b508c-7b2b-4730-9c3b-51b8332b531d",
+      "name": "LLM?"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Consultar Consumo 3 Meses",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Identificar Outliers": {
+      "main": [
+        [
+          {
+            "node": "LLM?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Preparar Prompt": {
+      "main": [
+        [
+          {
+            "node": "Análise LLM",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Análise LLM": {
+      "main": [
+        [
+          {
+            "node": "Formatar Resposta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Formatar Resposta": {
+      "main": [
+        [
+          {
+            "node": "Responder com JSON",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Consultar Consumo 3 Meses": {
+      "main": [
+        [
+          {
+            "node": "Identificar Outliers",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "LLM?": {
+      "main": [
+        [
+          {
+            "node": "Preparar Prompt",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Formatar Resposta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "versionId": "9146f0c7-aaf0-451d-b6f6-6edb5b9b803f",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "a7d1d13ab0668611fcf7ebd07401e5e1572b38eec4665ac4d20ef59abb5161bc"
+  },
+  "id": "eRUe5XEtM2WhF0qmUpani",
+  "tags": []
+}

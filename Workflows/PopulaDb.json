@@ -1,0 +1,596 @@
+{
+  "name": "Popular Database",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "popula-db",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        48,
+        -112
+      ],
+      "id": "f5d37a50-4b20-4c8f-bbdd-4e253af9336a",
+      "name": "Webhook",
+      "webhookId": "12743f55-331d-45a2-b0f3-a91ff026ac8c"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.compression",
+      "typeVersion": 1.1,
+      "position": [
+        496,
+        -112
+      ],
+      "id": "d6d4af5e-ce17-4435-b2af-bb17a1006f43",
+      "name": "Unzip",
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "schema": {
+          "__rl": true,
+          "mode": "list",
+          "value": "public"
+        },
+        "table": {
+          "__rl": true,
+          "value": "clientes",
+          "mode": "list",
+          "cachedResultName": "clientes"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {
+            "id": 0
+          },
+          "matchingColumns": [
+            "id"
+          ],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "nome",
+              "displayName": "nome",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        1616,
+        -304
+      ],
+      "id": "f7f25cff-072f-4cc3-918a-f05c62ca1d02",
+      "name": "Insert Clientes",
+      "credentials": {
+        "postgres": {
+          "id": "S0jPR9uOYvfMSs93",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "schema": {
+          "__rl": true,
+          "mode": "list",
+          "value": "public"
+        },
+        "table": {
+          "__rl": true,
+          "value": "contratos",
+          "mode": "list",
+          "cachedResultName": "contratos"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {
+            "status_contrato": false
+          },
+          "matchingColumns": [
+            "id"
+          ],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "cliente_id",
+              "displayName": "cliente_id",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "data_inicio",
+              "displayName": "data_inicio",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "status_contrato",
+              "displayName": "status_contrato",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "boolean",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        1616,
+        -112
+      ],
+      "id": "4570bd7f-280f-4f28-8779-9ed9802002cd",
+      "name": "Insert Contratos",
+      "credentials": {
+        "postgres": {
+          "id": "S0jPR9uOYvfMSs93",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "schema": {
+          "__rl": true,
+          "mode": "list",
+          "value": "public"
+        },
+        "table": {
+          "__rl": true,
+          "value": "leituras_energeticas",
+          "mode": "list",
+          "cachedResultName": "leituras_energeticas"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [
+            "id"
+          ],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "contrato_id",
+              "displayName": "contrato_id",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "data_leitura",
+              "displayName": "data_leitura",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "valor_kwh",
+              "displayName": "valor_kwh",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        1616,
+        80
+      ],
+      "id": "2c46fb8f-0649-40ce-8645-a92b530908d9",
+      "name": "Insert Leituras",
+      "credentials": {
+        "postgres": {
+          "id": "S0jPR9uOYvfMSs93",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $binary.data.fileName }}",
+                    "rightValue": "clientes.csv",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "2d101373-88c6-4313-abe7-93fbb5b1e30f"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Clientes"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "1a3b4de7-0ed8-405f-aa88-89f7d4c514a9",
+                    "leftValue": "={{ $binary.data.fileName }}",
+                    "rightValue": "=contratos.csv",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Contratos"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "35be100c-56f3-47b6-a491-0fa69b392c82",
+                    "leftValue": "={{ $binary.data.fileName }}",
+                    "rightValue": "leituras.csv",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Leituras"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        1168,
+        -128
+      ],
+      "id": "d04c31a5-804e-4db3-9aad-2031802411a4",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1.1,
+      "position": [
+        1392,
+        -304
+      ],
+      "id": "5f71aafa-5052-4ccf-8a57-b949ffb445b1",
+      "name": "Extract Clientes"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1.1,
+      "position": [
+        1392,
+        -112
+      ],
+      "id": "076025f6-3d32-43f6-8a05-c9fb8a5ca561",
+      "name": "Extract Contratos"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1.1,
+      "position": [
+        1392,
+        80
+      ],
+      "id": "51a8ee35-a56b-4e03-8fae-6b503b781860",
+      "name": "Extract Leituras"
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "Database populada com sucesso!",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        1840,
+        -112
+      ],
+      "id": "3c709d45-1784-4354-8604-261bc0064feb",
+      "name": "Responder Webhook"
+    },
+    {
+      "parameters": {
+        "jsCode": "let results = [];\n\nfor (const item of $input.all()) {\n  for (key of Object.keys(item.binary)) {\n        results.push({\n            binary: {\n                data: item.binary[key],\n            }\n        });\n    }\n}\n\nreturn results;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        720,
+        -112
+      ],
+      "id": "478a49ab-ceef-46c8-a66e-6cc9f95603a9",
+      "name": "Separar Arquivos"
+    },
+    {
+      "parameters": {
+        "jsCode": "for (const item of $input.all()) {\n  if (item.binary && item.binary.data) {\n    item.binary.data.mimeType = 'application/zip';\n    item.binary.data.fileExtension = 'zip';\n  }\n}\nreturn $input.all();"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        272,
+        -112
+      ],
+      "id": "ae285f2c-f180-4a8b-98b8-51b1e0e72c05",
+      "name": "Ajustar extension"
+    },
+    {
+      "parameters": {
+        "type": "code",
+        "code": "const prioridade = {\n  'clientes.csv': 1,\n  'contratos.csv': 2,\n  'leituras.csv': 3,\n};\n\nreturn prioridade[a.fileName] - prioridade[b.fileName];"
+      },
+      "type": "n8n-nodes-base.sort",
+      "typeVersion": 1,
+      "position": [
+        944,
+        -112
+      ],
+      "id": "b5854e33-ccaf-4cf1-8930-f69be30d7a97",
+      "name": "Ordenar Arquivos"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Ajustar extension",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Unzip": {
+      "main": [
+        [
+          {
+            "node": "Separar Arquivos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Insert Clientes": {
+      "main": [
+        [
+          {
+            "node": "Responder Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Extract Clientes",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Extract Contratos",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Extract Leituras",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Insert Contratos": {
+      "main": [
+        [
+          {
+            "node": "Responder Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Insert Leituras": {
+      "main": [
+        [
+          {
+            "node": "Responder Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Clientes": {
+      "main": [
+        [
+          {
+            "node": "Insert Clientes",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Contratos": {
+      "main": [
+        [
+          {
+            "node": "Insert Contratos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Leituras": {
+      "main": [
+        [
+          {
+            "node": "Insert Leituras",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Separar Arquivos": {
+      "main": [
+        [
+          {
+            "node": "Ordenar Arquivos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ajustar extension": {
+      "main": [
+        [
+          {
+            "node": "Unzip",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ordenar Arquivos": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "versionId": "dde5b1f8-4405-4d02-b22f-0e85601c615e",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "e760ccc52b3fda4afa6584b90e11fb284054e972f21e5526b28ef24c982e6c97"
+  },
+  "id": "4M22eFuGfo6W29B9yfWhH",
+  "tags": []
+}
